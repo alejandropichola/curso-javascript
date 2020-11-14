@@ -1,0 +1,208 @@
+<html>
+
+    <head>
+        <script src="https://code.jquery.com/jquery-2.2.4.js"  integrity="sha256-iT6Q9iMJYuQiMWNd9lDyBUStIq/8PuOW33aOqmvFpqI=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <script>
+            /*$.ajax({
+                method: "GET",
+                url: "http://localhost:54896/api/Consultas",
+                headers: { 
+                    'Accept': 'application/*',
+                    'Content-Type': 'application/json',
+                },
+                data: JSON.stringify("{\"idgrupo\":122020}")
+                }).done(function(data) {
+                    //alert(data); // imprimimos la respuesta
+                    console.log('esto recibe: ', data )
+                }).fail(function() {
+                    alert("Algo salió mal");
+                }).always(function() {
+                    alert("Siempre se ejecuta")
+            });*/
+            
+            $.ajax({
+                method: "GET",
+                url: "http://localhost:5000/server",
+                //data: JSON.stringify({ idgrupo: "252525" }),
+                contentType: "application/json",
+            }).done(function(response) {
+                const parse = JSON.parse(response);
+                const data = JSON.parse(parse);
+
+                $('#tbodyLoad').html('');
+                for(var item of data) {
+                    $('#tbodyLoad').append(
+                        `<tr>`+
+                            `<td>${item.nombrecompleto}</td>`+
+                            `<td>${item.dpi}</td>`+
+                            `<td>${item.telefono}</td>`+
+                            `<td>${item.correoElectronico}</td>`+
+                            `<td>${item.direccion}</td>`+
+                            `<td>${item.sintomas}</td>`+
+                            `<td>${item.temperatura}</td>`+
+                            `<td>${item.ritmocardiaco}</td>`+
+                            `<td>${item.horafecha}</td>`+
+                            `<td>${item.idgrupo}</td>`+
+                        `</tr>`
+                    )
+                }
+            })
+
+            function enviar(data) {
+            }
+
+            function enviar(obj) {
+                //var data = {casosIdentificados: [obj[0]]}
+                const data = { data: {casosIdentificados: obj}}
+                console.log('ojb: ', data)
+                $.ajax({
+                method: "POST",
+                url: "http://localhost:5000/server",
+                //data: JSON.stringify({ idgrupo: "252525" }),
+                data: JSON.stringify(data),
+                contentType: "application/json",
+                }).done(function(data) {
+                    console.log('esto recibo: ', data);
+                })
+            }
+
+        </script>
+        <style>
+            body {
+                padding: 10px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <strong><label>Ingresar casos:</label></strong><br />
+        <input type="file" name="inputfile"
+            id="inputfile">
+            <hr />
+            <strong><label>Ingresar sintomas: </label></strong>
+            <input type="file" name="inputFileSymptoms" id="inputfileSymptoms">
+        <br> 
+        <div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nombre Completo</th>
+                        <th>DPI</th>
+                        <th>Telefono</th>
+                        <th>Correo</th>
+                        <th>Direccion</th>
+                        <th>Sintomas</th>
+                        <th>Temperatura</th>
+                        <th>Ritmo Cardiaco</th>
+                        <th>Fecha</th>
+                        <th>Id Grupo</th>
+
+                    </tr>
+                </thead>
+                <tbody id="tbodyLoad">
+                </tbody>
+            </table>
+        </div>
+    
+        <pre id="output"></pre> 
+        
+        <script type="text/javascript"> 
+            document.getElementById('inputfileSymptoms') 
+                .addEventListener('change', function() {
+                arrayObjSymptoms = [];
+                
+                var fr=new FileReader(); 
+                fr.onload=function(){ 
+                    var arrayLines = fr.result.split("\n");
+                    for(var obj of arrayLines) {
+                        const objsplit = obj.split('##');
+                       // console.log('linea: ', objsplit);
+                       // console.log('fecha: ', new Date(objsplit[0]))
+
+                        const structobj = {
+                            "nombrecompleto": '',
+                            "dpi": objsplit[1],
+                            "telefono": '',
+                            "correoElectronico": '',
+                            "direccion": '',
+                            "sintomas": objsplit[2],
+                            "temperatura": objsplit[3],
+                            "ritmocardiaco": objsplit[4],
+                            "idgrupo": 252525,
+                            "creadoEl": "2020-10-31T18:00:00"
+                        }
+
+                        arrayObjSymptoms.push(structobj);
+                    }
+                    const total = arrayObjSymptoms.length;
+                    if (total <= 100) {
+                        enviar(arrayObjSymptoms);
+                        return;
+                    }
+                    for (let i=100; i<=total; i+=100) {
+                        const data = arrayObjSymptoms.slice((i-100), i);
+                        console.log(data);
+                        enviar(data);
+                    }
+
+
+                    //console.log('file: ', )
+
+                    /*document.getElementById('output') 
+                            .textContent=fr.result; */
+                } 
+                var file = fr.readAsText(this.files[0]); 
+            }) 
+            document.getElementById('inputfile') 
+                .addEventListener('change', function() {
+                arrayObj = [];
+                
+                var fr=new FileReader(); 
+                fr.onload=function(){ 
+                    var arrayLines = fr.result.split("\n");
+                    for(var obj of arrayLines) {
+                        const objsplit = obj.split('##');
+                       // console.log('linea: ', objsplit);
+                       // console.log('fecha: ', new Date(objsplit[0]))
+
+                        const structobj = {
+                            "nombrecompleto": objsplit[1],
+                            "dpi": objsplit[2],
+                            "telefono": objsplit[3],
+                            "correoElectronico": objsplit[4],
+                            "direccion": objsplit[5],
+                            "sintomas": objsplit[7],
+                            "temperatura": objsplit[6],
+                            "ritmocardiaco": objsplit[8],
+                            "idgrupo": 252525,
+                            "creadoEl": "2020-10-31T18:00:00"
+                        }
+
+                        arrayObj.push(structobj);
+                    }
+                    const total = arrayObj.length;
+                    if (total <= 100) {
+                        enviar(arrayObj);
+                        return;
+                    }
+                    for (let i=100; i<=total; i+=100) {
+                        const data = arrayObj.slice((i-100), i);
+                        console.log(data);
+                        enviar(data);
+                    }
+
+
+                    //console.log('file: ', )
+
+                    /*document.getElementById('output') 
+                            .textContent=fr.result; */
+                } 
+                var file = fr.readAsText(this.files[0]); 
+            }) 
+        </script> 
+    </body>
+
+</html>
